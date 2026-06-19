@@ -25,6 +25,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr></thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach ($purchaseOrders as $order)
@@ -34,6 +35,11 @@
                                 <td class="px-6 py-4 text-sm">{{ $order->order_date->format('M d, Y') }}</td>
                                 <td class="px-6 py-4">₦{{ number_format($order->total, 2) }}</td>
                                 <td class="px-6 py-4"><x-status-badge :color="$order->status->color()">{{ $order->status->label() }}</x-status-badge></td>
+                                <td class="px-6 py-4 text-right">
+                                    @if ($order->status->isEditableByAdmin())
+                                        <a href="{{ route('admin.purchase-orders.edit', $order) }}" class="link-primary text-sm">Edit</a>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

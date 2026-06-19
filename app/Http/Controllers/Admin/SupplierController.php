@@ -9,6 +9,7 @@ use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Enums\UserRole;
+use App\Services\SupplierNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,8 +39,10 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function store(StoreSupplierRequest $request): RedirectResponse
-    {
+    public function store(
+        StoreSupplierRequest $request,
+        SupplierNotificationService $notificationService,
+    ): RedirectResponse {
         $status = SupplierStatus::from($request->validated('status'));
 
         $supplier = DB::transaction(function () use ($request, $status): Supplier {
@@ -76,6 +79,10 @@ class SupplierController extends Controller
             return Supplier::query()->create($supplierData->all());
         });
 
+        if ($status === SupplierStatus::Approved) {
+            $notificationService->notifyApproved($supplier);
+        }
+
         return redirect()
             ->route('admin.suppliers.show', $supplier)
             ->with('success', 'Supplier created successfully.');
@@ -102,25 +109,35 @@ class SupplierController extends Controller
             ->with('success', 'Supplier updated successfully.');
     }
 
-    public function approve(Request $request, Supplier $supplier): RedirectResponse
-    {
+    public function approve(
+        Request $request,
+        Supplier $supplier,
+        SupplierNotificationService $notificationService,
+    ): RedirectResponse {
         $supplier->update([
             'status' => SupplierStatus::Approved,
             'approved_at' => now(),
             'approved_by' => $request->user()->id,
         ]);
 
+        $notificationService->notifyApproved($supplier->fresh());
+
         return back()->with('success', 'Supplier approved successfully.');
     }
 
-    public function reject(Request $request, Supplier $supplier): RedirectResponse
-    {
+    public function reject(
+        Request $request,
+        Supplier $supplier,
+        SupplierNotificationService $notificationService,
+    ): RedirectResponse {
         $request->validate(['admin_notes' => ['nullable', 'string', 'max:1000']]);
 
         $supplier->update([
             'status' => SupplierStatus::Rejected,
             'admin_notes' => $request->input('admin_notes'),
         ]);
+
+        $notificationService->notifyRejected($supplier->fresh());
 
         return back()->with('success', 'Supplier application rejected.');
     }

@@ -100,7 +100,7 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchaseOrder): View|RedirectResponse
     {
-        if ($purchaseOrder->status->isTerminal() || $purchaseOrder->status === PurchaseOrderStatus::Dispatched) {
+        if (! $purchaseOrder->status->isEditableByAdmin()) {
             return redirect()
                 ->route('admin.purchase-orders.show', $purchaseOrder)
                 ->with('error', 'This purchase order cannot be edited in its current status.');
@@ -127,7 +127,7 @@ class PurchaseOrderController extends Controller
 
     public function update(PurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
-        if ($purchaseOrder->status->isTerminal() || $purchaseOrder->status === PurchaseOrderStatus::Dispatched) {
+        if (! $purchaseOrder->status->isEditableByAdmin()) {
             return back()->with('error', 'This purchase order cannot be edited in its current status.');
         }
 
@@ -152,6 +152,8 @@ class PurchaseOrderController extends Controller
             'Purchase order details were updated.',
             $request->user(),
         );
+
+        $this->statusService->notifySupplierOfUpdate($purchaseOrder, $request->user());
 
         return redirect()
             ->route('admin.purchase-orders.show', $purchaseOrder)

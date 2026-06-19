@@ -6,6 +6,7 @@ use App\Enums\PurchaseOrderStatus;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Notifications\PurchaseOrderStatusChangedNotification;
+use App\Notifications\PurchaseOrderUpdatedNotification;
 use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
 
@@ -85,6 +86,32 @@ class PurchaseOrderStatusService
             $purchaseOrder->status,
             $actor,
         );
+    }
+
+    public function notifySupplierOfUpdate(PurchaseOrder $purchaseOrder, ?User $actor = null): void
+    {
+        if (! $purchaseOrder->status->isEditableByAdmin() || $purchaseOrder->status === PurchaseOrderStatus::Draft) {
+            return;
+        }
+
+        $purchaseOrder->load(['supplier.user']);
+
+        $notification = new PurchaseOrderUpdatedNotification(
+            purchaseOrder: $purchaseOrder,
+            updatedByName: $actor?->name,
+        );
+
+        $supplier = $purchaseOrder->supplier;
+
+        if ($supplier->user) {
+            $supplier->user->notify($notification);
+
+            return;
+        }
+
+        if (filled($supplier->email)) {
+            Notification::route('mail', $supplier->email)->notify($notification);
+        }
     }
 
     private function logStatusChange(

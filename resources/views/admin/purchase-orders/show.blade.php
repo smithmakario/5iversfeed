@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800">{{ $purchaseOrder->po_number }}</h2>
-            @if (! $purchaseOrder->status->isTerminal() && $purchaseOrder->status !== \App\Enums\PurchaseOrderStatus::Dispatched)
+            @if ($purchaseOrder->status->isEditableByAdmin())
                 <a href="{{ route('admin.purchase-orders.edit', $purchaseOrder) }}" class="link-primary">Edit</a>
             @endif
         </div>

@@ -43,6 +43,15 @@ enum PurchaseOrderStatus: string
         return in_array($this, [self::Received, self::Cancelled], true);
     }
 
+    public function isEditableByAdmin(): bool
+    {
+        return in_array($this, [
+            self::Draft,
+            self::Submitted,
+            self::Rejected,
+        ], true);
+    }
+
     /** @return list<self> */
     public function allowedTransitionsForAdmin(): array
     {

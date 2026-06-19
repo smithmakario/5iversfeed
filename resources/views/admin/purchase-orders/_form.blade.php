@@ -19,6 +19,15 @@
     <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">{{ $isEdit ? 'Edit' : 'Create' }} Purchase Order</h2></x-slot>
     <div class="py-8" x-data="poForm()">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+            @if ($isEdit && $purchaseOrder->status === \App\Enums\PurchaseOrderStatus::Submitted)
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                    This purchase order has been issued to the supplier and is awaiting their response. Saving changes will notify the supplier to review the updated terms.
+                </div>
+            @elseif ($isEdit && $purchaseOrder->status === \App\Enums\PurchaseOrderStatus::Rejected)
+                <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                    The supplier rejected this purchase order. Update the details and re-issue it from the purchase order page when ready.
+                </div>
+            @endif
             <div class="bg-white shadow rounded-lg p-6">
                 <form method="POST" action="{{ $isEdit ? route('admin.purchase-orders.update', $purchaseOrder) : route('admin.purchase-orders.store') }}">
                     @csrf @if($isEdit) @method('PUT') @endif

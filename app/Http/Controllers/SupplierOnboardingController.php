@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Http\Requests\SupplierOnboardingRequest;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\SupplierNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,11 +20,13 @@ class SupplierOnboardingController extends Controller
         return view('supplier-onboarding.create');
     }
 
-    public function store(SupplierOnboardingRequest $request): RedirectResponse
-    {
+    public function store(
+        SupplierOnboardingRequest $request,
+        SupplierNotificationService $notificationService,
+    ): RedirectResponse {
         $avatarPath = $request->file('company_logo')->store('avatars', 'public');
 
-        DB::transaction(function () use ($request, $avatarPath): void {
+        [$user, $supplier] = DB::transaction(function () use ($request, $avatarPath): array {
             $user = User::query()->create([
                 'name' => $request->validated('contact_name'),
                 'email' => $request->validated('email'),
@@ -32,7 +35,7 @@ class SupplierOnboardingController extends Controller
                 'avatar' => $avatarPath,
             ]);
 
-            Supplier::query()->create([
+            $supplier = Supplier::query()->create([
                 'user_id' => $user->id,
                 'company_name' => $request->validated('company_name'),
                 'contact_name' => $request->validated('contact_name'),
@@ -46,7 +49,11 @@ class SupplierOnboardingController extends Controller
                 'registration_number' => $request->validated('registration_number'),
                 'status' => SupplierStatus::Pending,
             ]);
+
+            return [$user, $supplier];
         });
+
+        $notificationService->notifyApplicationSubmitted($supplier, $user);
 
         return redirect()
             ->route('login')

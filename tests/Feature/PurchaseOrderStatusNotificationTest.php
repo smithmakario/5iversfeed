@@ -199,6 +199,51 @@ test('no notification is sent when draft purchase order is edited', function () 
     Notification::assertNothingSent();
 });
 
+test('admin can edit issued purchase order awaiting supplier acceptance', function () {
+    ['admin' => $admin, 'purchaseOrder' => $purchaseOrder, 'formulation' => $formulation, 'supplier' => $supplier] = createPurchaseOrderFixture();
+
+    $this->actingAs($admin)
+        ->get(route('admin.purchase-orders.edit', $purchaseOrder))
+        ->assertOk()
+        ->assertSee('Edit Purchase Order')
+        ->assertSee('issued to the supplier');
+});
+
+test('supplier is notified when issued purchase order is updated', function () {
+    Notification::fake();
+
+    ['admin' => $admin, 'supplierUser' => $supplierUser, 'purchaseOrder' => $purchaseOrder, 'formulation' => $formulation, 'supplier' => $supplier] = createPurchaseOrderFixture();
+
+    $this->actingAs($admin)
+        ->put(route('admin.purchase-orders.update', $purchaseOrder), [
+            'supplier_id' => $supplier->id,
+            'order_date' => now()->toDateString(),
+            'tax_amount' => 0,
+            'payment_option' => 'one_off',
+            'items' => [
+                [
+                    'formulation_id' => $formulation->id,
+                    'quantity' => 8,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
+
+    Notification::assertSentTo(
+        $supplierUser,
+        \App\Notifications\PurchaseOrderUpdatedNotification::class,
+    );
+});
+
+test('confirmed purchase order cannot be edited by admin', function () {
+    ['admin' => $admin, 'purchaseOrder' => $purchaseOrder] = createPurchaseOrderFixture(PurchaseOrderStatus::Confirmed);
+
+    $this->actingAs($admin)
+        ->get(route('admin.purchase-orders.edit', $purchaseOrder))
+        ->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder))
+        ->assertSessionHas('error');
+});
+
 test('supplier without user account receives on-demand mail notification', function () {
     Notification::fake();
 
