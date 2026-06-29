@@ -64,6 +64,10 @@ class User extends Authenticatable
 
     public function dashboardRoute(): string
     {
+        if ($this->role === UserRole::Supplier && ! $this->supplier?->isApproved()) {
+            return 'supplier.pending';
+        }
+
         return match ($this->role) {
             UserRole::Admin => 'admin.dashboard',
             UserRole::Supplier => 'supplier.dashboard',

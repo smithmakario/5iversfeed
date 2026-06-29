@@ -26,14 +26,20 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-
-    if ($user->isSupplier() && ! $user->supplier?->isApproved()) {
-        return view('supplier.pending', ['supplier' => $user->supplier]);
-    }
-
-    return redirect()->route($user->dashboardRoute());
+    return redirect()->route(auth()->user()->dashboardRoute());
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/supplier/pending', function () {
+        $user = auth()->user();
+
+        if (! $user->isSupplier()) {
+            abort(403, 'Supplier access required.');
+        }
+
+        return view('supplier.pending', ['supplier' => $user->supplier]);
+    })->name('supplier.pending');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

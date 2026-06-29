@@ -136,8 +136,10 @@ class PurchaseOrderController extends Controller
 
     private function authorizeOrder(Request $request, PurchaseOrder $purchaseOrder): void
     {
-        if ($purchaseOrder->supplier_id !== $request->user()->supplier?->id) {
-            abort(403);
+        $supplierId = $request->user()->supplier?->id;
+
+        if ((int) $purchaseOrder->supplier_id !== (int) $supplierId) {
+            abort(403, 'You do not have access to this purchase order.');
         }
     }
 }
