@@ -114,7 +114,9 @@ test('admin is notified when supplier dispatches a purchase order', function () 
     ['admin' => $admin, 'supplierUser' => $supplierUser, 'purchaseOrder' => $purchaseOrder] = createPurchaseOrderFixture(PurchaseOrderStatus::Confirmed);
 
     $this->actingAs($supplierUser)
-        ->post(route('supplier.purchase-orders.dispatch', $purchaseOrder))
+        ->post(route('supplier.purchase-orders.dispatch', $purchaseOrder), [
+            'dispatched_at' => now()->toDateString(),
+        ])
         ->assertRedirect();
 
     Notification::assertSentTo(

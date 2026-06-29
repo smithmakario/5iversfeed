@@ -197,6 +197,7 @@ class PurchaseOrderController extends Controller
         }
 
         $amount = min((float) $request->validated('amount'), $outstanding);
+        $paymentDate = $request->date('payment_date')->startOfDay();
 
         $this->paymentService->recordPayment($purchaseOrder, $amount);
 
@@ -205,7 +206,11 @@ class PurchaseOrderController extends Controller
             'payment_recorded',
             'Payment of ₦'.number_format($amount, 2).' recorded.',
             $request->user(),
-            ['amount' => $amount],
+            [
+                'amount' => $amount,
+                'payment_date' => $paymentDate->toDateString(),
+            ],
+            $paymentDate,
         );
 
         return back()->with('success', 'Payment of ₦'.number_format($amount, 2).' recorded successfully.');

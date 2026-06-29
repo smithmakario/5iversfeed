@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Supplier;
 
 use App\Enums\PurchaseOrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DispatchPurchaseOrderRequest;
 use App\Models\PurchaseOrder;
 use App\Services\PurchaseOrderActivityService;
 use App\Services\PurchaseOrderStatusService;
@@ -78,9 +79,13 @@ class PurchaseOrderController extends Controller
         );
     }
 
-    public function dispatch(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
+    public function dispatch(DispatchPurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->authorizeOrder($request, $purchaseOrder);
+
+        $purchaseOrder->update([
+            'dispatched_at' => $request->date('dispatched_at')->startOfDay(),
+        ]);
 
         try {
             $this->statusService->transition(

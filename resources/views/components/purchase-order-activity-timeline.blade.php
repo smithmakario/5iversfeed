@@ -29,6 +29,9 @@
                     @if (! empty($activity->metadata['amount']))
                         <p class="text-xs text-gray-500 mt-0.5">Amount: ₦{{ number_format($activity->metadata['amount'], 2) }}</p>
                     @endif
+                    @if (! empty($activity->metadata['payment_date']))
+                        <p class="text-xs text-gray-500 mt-0.5">Payment date: {{ \Illuminate\Support\Carbon::parse($activity->metadata['payment_date'])->format('M d, Y') }}</p>
+                    @endif
                 </li>
             @endforeach
         </ol>

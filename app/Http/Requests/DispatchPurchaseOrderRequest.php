@@ -6,7 +6,7 @@ use App\Models\PurchaseOrder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class RecordPaymentRequest extends FormRequest
+class DispatchPurchaseOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,8 +16,7 @@ class RecordPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:0.01'],
-            'payment_date' => ['required', 'date', 'before_or_equal:today'],
+            'dispatched_at' => ['required', 'date', 'before_or_equal:today'],
         ];
     }
 
@@ -27,14 +26,14 @@ class RecordPaymentRequest extends FormRequest
             /** @var PurchaseOrder|null $purchaseOrder */
             $purchaseOrder = $this->route('purchase_order');
 
-            if (! $purchaseOrder || ! $this->filled('payment_date')) {
+            if (! $purchaseOrder || ! $this->filled('dispatched_at')) {
                 return;
             }
 
-            if ($this->date('payment_date')->lt($purchaseOrder->order_date)) {
+            if ($this->date('dispatched_at')->lt($purchaseOrder->order_date)) {
                 $validator->errors()->add(
-                    'payment_date',
-                    'Payment date cannot be before the order date.',
+                    'dispatched_at',
+                    'Dispatch date cannot be before the order date.',
                 );
             }
         });

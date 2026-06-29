@@ -88,11 +88,16 @@
                                 <div class="flex justify-between font-semibold"><dt class="text-gray-500">Outstanding</dt><dd>₦{{ number_format($purchaseOrder->amountOutstanding(), 2) }}</dd></div>
                             </dl>
                             @if ($purchaseOrder->amountOutstanding() > 0)
-                                <form method="POST" action="{{ route('admin.purchase-orders.record-payment', $purchaseOrder) }}" class="mt-4 flex gap-2 items-end">
+                                <form method="POST" action="{{ route('admin.purchase-orders.record-payment', $purchaseOrder) }}" class="mt-4 flex flex-wrap gap-2 items-end">
                                     @csrf
-                                    <div class="flex-1">
+                                    <div class="flex-1 min-w-[8rem]">
                                         <x-input-label for="amount" value="Record Payment (₦)" />
                                         <x-text-input id="amount" name="amount" type="number" step="0.01" min="0.01" :max="$purchaseOrder->amountOutstanding()" class="block mt-1 w-full" required />
+                                    </div>
+                                    <div class="min-w-[10rem]">
+                                        <x-input-label for="payment_date" value="Payment date" />
+                                        <x-text-input id="payment_date" name="payment_date" type="date" class="block mt-1 w-full" :value="old('payment_date', now()->toDateString())" max="{{ now()->toDateString() }}" :min="$purchaseOrder->order_date->toDateString()" required />
+                                        <x-input-error :messages="$errors->get('payment_date')" class="mt-2" />
                                     </div>
                                     <x-primary-button type="submit">Record</x-primary-button>
                                 </form>

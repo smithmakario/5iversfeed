@@ -16,8 +16,13 @@
                     </form>
                 @endif
                 @if ($canDispatch)
-                    <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $purchaseOrder) }}">
+                    <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $purchaseOrder) }}" class="flex flex-wrap items-end gap-3">
                         @csrf
+                        <div>
+                            <x-input-label for="header_dispatched_at" value="Dispatch date" />
+                            <x-text-input id="header_dispatched_at" name="dispatched_at" type="date" class="block mt-1" :value="old('dispatched_at', now()->toDateString())" max="{{ now()->toDateString() }}" :min="$purchaseOrder->order_date->toDateString()" required />
+                            <x-input-error :messages="$errors->get('dispatched_at')" class="mt-2" />
+                        </div>
                         <button type="submit" class="btn-primary">Mark as Dispatched</button>
                     </form>
                 @endif
@@ -46,8 +51,13 @@
                         <h3 class="font-semibold text-sm mb-3">Your Actions</h3>
                         @if ($canDispatch)
                             <p class="text-sm text-gray-600 mb-3">This order is accepted. Mark it as dispatched to start the credit repayment countdown.</p>
-                            <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $purchaseOrder) }}">
+                            <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $purchaseOrder) }}" class="flex flex-wrap items-end gap-3">
                                 @csrf
+                                <div>
+                                    <x-input-label for="dispatched_at" value="Dispatch date" />
+                                    <x-text-input id="dispatched_at" name="dispatched_at" type="date" class="block mt-1" :value="old('dispatched_at', now()->toDateString())" max="{{ now()->toDateString() }}" :min="$purchaseOrder->order_date->toDateString()" required />
+                                    <x-input-error :messages="$errors->get('dispatched_at')" class="mt-2" />
+                                </div>
                                 <button type="submit" class="btn-primary text-base px-6 py-3">Mark as Dispatched</button>
                             </form>
                         @elseif ($canAccept)

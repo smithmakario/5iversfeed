@@ -39,8 +39,9 @@
                                     @if ($order->status === \App\Enums\PurchaseOrderStatus::Submitted)
                                         <a href="{{ route('supplier.purchase-orders.show', $order) }}" class="text-sm link-primary">Accept</a>
                                     @elseif ($order->status === \App\Enums\PurchaseOrderStatus::Confirmed)
-                                        <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $order) }}" class="inline">
+                                        <form method="POST" action="{{ route('supplier.purchase-orders.dispatch', $order) }}" class="inline-flex flex-wrap items-center justify-end gap-2">
                                             @csrf
+                                            <input type="date" name="dispatched_at" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" min="{{ $order->order_date->toDateString() }}" class="border-gray-300 rounded-md shadow-sm text-xs" required>
                                             <button type="submit" class="text-sm font-medium text-indigo-700 hover:text-indigo-900">Dispatch</button>
                                         </form>
                                     @else
